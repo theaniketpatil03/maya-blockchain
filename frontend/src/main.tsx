@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import {
   Link,
+  NavLink,
   Route,
   BrowserRouter as Router,
   Routes,
@@ -33,40 +34,87 @@ function ageFrom(value?: string | number): string {
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <header className="topbar">
-        <Link to="/" className="brand">
-          <span className="brand-mark">▣</span>
-          <span>
-            <strong>BORLAUG</strong>
-            <small>WEB SERVICES</small>
-          </span>
-        </Link>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="/blocks">Blocks</Link>
-          <Link to="/transactions">Transactions</Link>
-          <Link to="/accounts">Accounts</Link>
-        </nav>
+      <header>
+        <div className="site-navbar shadow-sm">
+          <div className="site-navbar-inner">
+            <nav className="site-nav">
+              <Link to="/" className="navbar-brand">
+                <img src="/logo-header.png" alt="BORLAUG WEB SERVICES" height={30} />
+              </Link>
+              <ul className="navbar-nav">
+                <li>
+                  <NavLink to="/" className="nav-link" end>
+                    Home
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/transactions" className="nav-link">
+                    Transactions
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/blocks" className="nav-link">
+                    Blocks
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/accounts" className="nav-link">
+                    Accounts
+                  </NavLink>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
       </header>
       <main className="page">{children}</main>
-      <footer className="footer">
-        <div className="footer-mark">▣</div>
-        <div>
-          <strong>About Us</strong>
-          <span>Company</span>
-        </div>
-        <div>
-          <strong>Contact Us</strong>
-          <span>info@borlaug.ws</span>
-        </div>
-        <div>
-          <strong>Resources</strong>
-          <span>Documentation</span>
-        </div>
-        <div>
-          <strong>Legal</strong>
-          <Link to="/privacy">Privacy</Link>
-          <Link to="/terms">Terms</Link>
+      <footer className="site-footer">
+        <div className="footer-row">
+          <div className="footer-col footer-brand-col">
+            <div className="footer-logo-wrap">
+              <img src="/logo-footer.png" alt="BORLAUG WEB SERVICES" height={30} />
+            </div>
+            <small className="footer-copy">© 2017-2020</small>
+          </div>
+          <div className="footer-col">
+            <h5>About Us</h5>
+            <ul className="footer-links">
+              <li>
+                <a href="https://www.borlaug.ws/" target="_blank" rel="noreferrer">
+                  Company
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div className="footer-col">
+            <h5>Contact Us</h5>
+            <ul className="footer-links">
+              <li>
+                <a href="mailto:info@borlaug.ws">info@borlaug.ws</a>
+              </li>
+            </ul>
+          </div>
+          <div className="footer-col">
+            <h5>Resources</h5>
+            <ul className="footer-links">
+              <li>
+                <a href="https://www.borlaug.ws/bws-sales-private" target="_blank" rel="noreferrer">
+                  Documentation
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div className="footer-col">
+            <h5>Legal</h5>
+            <ul className="footer-links">
+              <li>
+                <Link to="/privacy">Privacy</Link>
+              </li>
+              <li>
+                <Link to="/terms">Terms</Link>
+              </li>
+            </ul>
+          </div>
         </div>
       </footer>
     </>
@@ -87,17 +135,48 @@ function Card({ title, icon, children }: { title?: string; icon?: string; childr
   );
 }
 
-function Pager({ page, total, perPage }: { page: number; total: number; perPage: number }) {
+function Spinner({ label = 'Loading' }: { label?: string }) {
+  return (
+    <div className="spinner" role="status" aria-live="polite" aria-label={label}>
+      <span className="spinner-ring" aria-hidden="true" />
+      <span className="spinner-text">{label}…</span>
+    </div>
+  );
+}
+
+function Pager({
+  page,
+  total,
+  perPage,
+  disabled = false,
+}: {
+  page: number;
+  total: number;
+  perPage: number;
+  disabled?: boolean;
+}) {
   const totalPages = Math.max(Math.ceil(total / perPage), 1);
   const prev = Math.max(page - 1, 1);
   const next = Math.min(page + 1, totalPages);
   return (
-    <div className="pager">
-      <Link to={`?page=${prev}`}>Prev</Link>
+    <div className={`pager${disabled ? ' is-disabled' : ''}`} aria-disabled={disabled}>
+      {disabled ? (
+        <span className="pager-disabled">Prev</span>
+      ) : (
+        <Link to={`?page=${prev}`}>Prev</Link>
+      )}
       <span>{page}</span>
       <span>...</span>
-      <Link to={`?page=${totalPages}`}>{totalPages}</Link>
-      <Link to={`?page=${next}`}>Next</Link>
+      {disabled ? (
+        <span className="pager-disabled">{totalPages}</span>
+      ) : (
+        <Link to={`?page=${totalPages}`}>{totalPages}</Link>
+      )}
+      {disabled ? (
+        <span className="pager-disabled">Next</span>
+      ) : (
+        <Link to={`?page=${next}`}>Next</Link>
+      )}
     </div>
   );
 }
@@ -287,16 +366,69 @@ function ListPage({
   const [params] = useSearchParams();
   const page = Number(params.get('page') || '1');
   const [data, setData] = useState<Page<AnyRecord> | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    apiGet<Page<AnyRecord>>(`${endpoint}?page=${page}&perPage=10`).then(setData);
+    let active = true;
+    setLoading(true);
+    setError(null);
+
+    apiGet<Page<AnyRecord>>(`${endpoint}?page=${page}&perPage=10`)
+      .then((result) => {
+        if (!active) return;
+        setData(result);
+      })
+      .catch(() => {
+        if (!active) return;
+        setError('Failed to load data. Please try again.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [endpoint, page]);
+
+  const showing = data?.slice?.length || 0;
+  const total = data?.total || 0;
+  const hasData = Boolean(data?.slice?.length);
 
   return (
     <Layout>
       <h1>{title}</h1>
-      <Card title={`Showing ${data?.slice?.length || 0} of ${data?.total || 0}`}>
-        <Table rows={data?.slice || []} columns={columns} link={link} renderCell={renderCell} />
-        {data && <Pager page={data.page} total={data.total} perPage={data.perPage} />}
+      <Card title={loading && !hasData ? 'Loading…' : `Showing ${showing} of ${total}`}>
+        <div className={`list-panel${loading ? ' is-loading' : ''}`} aria-busy={loading}>
+          {loading && !hasData && (
+            <div className="list-loader list-loader-initial">
+              <Spinner label={`Loading ${title.toLowerCase()}`} />
+            </div>
+          )}
+
+          {hasData && (
+            <div className="list-content">
+              <Table rows={data!.slice} columns={columns} link={link} renderCell={renderCell} />
+              <Pager
+                page={data!.page}
+                total={data!.total}
+                perPage={data!.perPage}
+                disabled={loading}
+              />
+            </div>
+          )}
+
+          {loading && hasData && (
+            <div className="list-loader list-loader-overlay">
+              <Spinner label="Loading page" />
+            </div>
+          )}
+
+          {!loading && !hasData && (
+            <div className="list-empty muted">{error || 'No results found.'}</div>
+          )}
+        </div>
       </Card>
     </Layout>
   );
