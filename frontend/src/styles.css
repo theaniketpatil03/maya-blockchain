@@ -361,16 +361,39 @@ th {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 12px;
 }
 
-.spinner-ring {
-  width: 36px;
-  height: 36px;
-  border: 3px solid #e3e8ee;
-  border-top-color: var(--orange);
-  border-radius: 50%;
-  animation: spin 0.75s linear infinite;
+.wave-loader {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  height: 28px;
+}
+
+.wave-loader-bar {
+  display: block;
+  width: 5px;
+  height: 100%;
+  max-height: 28px;
+  background: var(--orange);
+  border-radius: 1px;
+  transform-origin: bottom center;
+  animation: wave-bar 0.9s ease-in-out infinite;
+}
+
+.wave-loader-bar:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.wave-loader-bar:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.wave-loader-bar:nth-child(3) {
+  animation-delay: 0.3s;
 }
 
 .spinner-text {
@@ -379,17 +402,105 @@ th {
   letter-spacing: 0.02em;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+.home-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 24px 0;
+}
+
+.detail-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  padding: 32px 0;
+}
+
+.legal-page {
+  background: var(--card);
+  padding: 28px 32px 40px;
+  margin-bottom: 18px;
+  color: #34495e;
+  line-height: 1.55;
+}
+
+.legal-page h1 {
+  margin: 0 0 18px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.legal-page .legal-effective {
+  margin: 0 0 18px;
+  color: var(--text);
+}
+
+.legal-page h2 {
+  margin: 28px 0 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2c3e50;
+  text-transform: none;
+}
+
+.legal-page p {
+  margin: 0 0 14px;
+}
+
+.legal-page ol,
+.legal-page ul {
+  margin: 0 0 14px;
+  padding-left: 22px;
+}
+
+.legal-page li {
+  margin-bottom: 10px;
+}
+
+.legal-page li p {
+  margin: 6px 0 0;
+}
+
+.legal-page .legal-subhead {
+  margin: 16px 0 10px;
+  font-weight: 700;
+}
+
+.legal-page .legal-updated {
+  margin-top: 28px;
+}
+
+.legal-page .legal-ack {
+  margin-top: 24px;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+@keyframes wave-bar {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .spinner-ring {
+  .wave-loader-bar {
     animation: none;
-    border-top-color: var(--orange);
-    opacity: 0.85;
+    transform: scaleY(0.7);
+  }
+
+  .wave-loader-bar:nth-child(2) {
+    transform: scaleY(1);
+  }
+
+  .wave-loader-bar:nth-child(3) {
+    transform: scaleY(0.55);
   }
 
   .list-panel.is-loading .list-content {
