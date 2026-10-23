@@ -27,7 +27,7 @@ Backend API:
 http://localhost:8000/api/health
 ```
 
-MongoDB is published on host port `27018` by default so it does not clash with `maya-scraper` Mongo on `27017`.
+MongoDB is not published on the host. The backend reaches it as `mongodb:27017` on the Compose network, using the username and password in `.env`.
 
 If the homepage is blank, check backend can resolve Mongo:
 
@@ -50,7 +50,9 @@ If the scraper produced a Mongo archive:
 
 ```bash
 docker cp maya_explorer.archive maya-blockchain-mongodb:/tmp/maya_explorer.archive
-docker exec maya-blockchain-mongodb mongorestore --archive=/tmp/maya_explorer.archive --drop
+docker exec maya-blockchain-mongodb mongorestore \
+  -u "$MONGO_ROOT_USERNAME" -p "$MONGO_ROOT_PASSWORD" --authenticationDatabase admin \
+  --archive=/tmp/maya_explorer.archive --drop
 ```
 
 ## Main API Routes
